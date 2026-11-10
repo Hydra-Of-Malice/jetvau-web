@@ -21,3 +21,6 @@ build/
 
 # source archive
 *.zip
+
+# local Claude Code preview config
+.claude/
