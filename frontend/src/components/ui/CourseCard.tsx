@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Clock, IndianRupee, CheckCircle, ArrowRight, Plane } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { resolveApiUrl } from "@/lib/api";
 
 interface CourseCardProps {
     slug: string;
@@ -20,9 +21,9 @@ export function CourseCard({ slug, title, category, duration, price, originalPri
             {/* Image Container */}
             <div className="relative h-48 bg-slate-200 overflow-hidden">
                 {image ? (
-                    // Course images can be data URLs from the admin panel, so next/image isn't used here
+                    // Course images are served by the API, which next/image isn't configured for
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={image} alt={title} loading="lazy" className="w-full h-full object-cover" />
+                    <img src={resolveApiUrl(image)} alt={title} loading="lazy" className="w-full h-full object-cover" />
                 ) : (
                     <div className="absolute inset-0 bg-slate-800 flex items-center justify-center text-slate-500" aria-hidden="true">
                         <Plane size={40} />

@@ -152,7 +152,7 @@ export default function CourseForm() {
             price: Math.round(price * 100), // paise, for Razorpay
             displayPrice: formatPrice(price),
             originalPrice: originalPrice !== null ? formatPrice(originalPrice) : '',
-            image: form.images[0] || '',
+            // The API uses the first image as the cover, so it isn't sent twice
             images: form.images,
             description: form.description.trim(),
             features: form.features.map((f) => f.trim()).filter(Boolean),

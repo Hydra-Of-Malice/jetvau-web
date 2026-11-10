@@ -6,6 +6,7 @@
 // Optional: ADMIN_NAME, ADMIN_PHONE. Reads MONGODB_URI from backend/.env.
 require("dotenv").config();
 const mongoose = require("mongoose");
+const connectDB = require("../config/db");
 const User = require("../models/User");
 
 async function main() {
@@ -24,7 +25,7 @@ async function main() {
         throw new Error("ADMIN_PASSWORD must be at least 12 characters");
     }
 
-    await mongoose.connect(process.env.MONGODB_URI);
+    await connectDB();
 
     const existing = await User.findOne({ email }).select("+password");
     if (existing) {

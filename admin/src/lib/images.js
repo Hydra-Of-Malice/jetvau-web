@@ -5,7 +5,8 @@
 const MAX_DIMENSION = 1600;
 const JPEG_QUALITY = 0.8;
 
-// Total size of all images in one save, as base64 text
+// Total size of all images in one save, as base64 text. Each image is sent once
+// (the API derives the cover from the first image), leaving room for the other fields.
 export const MAX_TOTAL_IMAGE_CHARS = 3 * 1024 * 1024;
 
 export function compressImage(file) {

@@ -19,10 +19,23 @@ Set these in the Vercel project settings.
 | `MONGODB_URI` | yes | backend |
 | `JWT_SECRET` | yes, a long random string | backend |
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | for payments | backend |
+| `RAZORPAY_WEBHOOK_SECRET` | recommended, see below | backend |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `FROM_EMAIL` | for enrollment emails | backend |
 | `NEXT_PUBLIC_SITE_URL` | no, defaults to `https://jetvau.com` | frontend metadata, sitemap |
 
 `FRONTEND_URL` / `ADMIN_URL` (CORS) and `NEXT_PUBLIC_API_URL` / `VITE_API_URL` are only needed for local development when the apps run on different ports. MongoDB Atlas must allow connections from Vercel (Network Access).
+
+## Razorpay webhook
+
+The browser confirms each payment with `/api/payments/verify`, but if the user closes the tab right after paying, that call never happens. The webhook confirms those payments too, and captures payments that were only authorized (uncaptured payments are refunded by Razorpay).
+
+In the Razorpay dashboard, go to Settings → Webhooks → Add new webhook:
+
+- URL: `https://<your-domain>/api/payments/webhook`
+- Secret: a long random string; set the same value as `RAZORPAY_WEBHOOK_SECRET` in Vercel
+- Events: `payment.authorized`, `payment.captured`, `order.paid`
+
+If a user pays twice for the same course (two checkout tabs), the second payment is logged as a warning in the backend logs and has to be refunded from the Razorpay dashboard.
 
 ## Creating the first admin
 

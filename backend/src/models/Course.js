@@ -72,8 +72,9 @@ const courseSchema = new mongoose.Schema(
     }
 );
 
-// Auto-generate slug from title before saving
-courseSchema.pre("save", function (next) {
+// Auto-generate slug from title. This runs before validation (not in pre("save"), which runs
+// after validation), so invalidate() below actually stops the save.
+courseSchema.pre("validate", function (next) {
     if (this.isModified("title")) {
         this.slug = this.title
             .toLowerCase()

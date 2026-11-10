@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiGet } from "@/lib/api";
+import { apiGet, resolveApiUrl } from "@/lib/api";
 import { BookOpen, Clock, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 
 interface Enrollment {
@@ -97,7 +97,7 @@ export default function MyCoursesPage() {
                                             <div className="h-40 bg-primary flex items-center justify-center overflow-hidden">
                                                 {enrollment.course.image ? (
                                                     // eslint-disable-next-line @next/next/no-img-element
-                                                    <img src={enrollment.course.image} alt="" loading="lazy" className="w-full h-full object-cover" />
+                                                    <img src={resolveApiUrl(enrollment.course.image)} alt="" loading="lazy" className="w-full h-full object-cover" />
                                                 ) : (
                                                     <BookOpen size={40} className="text-white/80" aria-hidden="true" />
                                                 )}

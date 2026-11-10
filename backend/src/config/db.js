@@ -1,4 +1,12 @@
+const dns = require("dns");
 const mongoose = require("mongoose");
+
+// Optional, for local development: mongodb+srv:// needs a DNS SRV lookup, which fails with
+// "querySrv ECONNREFUSED" when Node picks up a local DNS server that refuses queries.
+// Set DNS_SERVERS=8.8.8.8,1.1.1.1 (or your router's address) to use those servers instead.
+if (process.env.DNS_SERVERS) {
+    dns.setServers(process.env.DNS_SERVERS.split(",").map((server) => server.trim()).filter(Boolean));
+}
 
 // Turn query filters like { email: { $gt: "" } } coming from user input into plain equality checks.
 mongoose.set("sanitizeFilter", true);

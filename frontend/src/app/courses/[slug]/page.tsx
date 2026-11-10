@@ -8,7 +8,7 @@ import { EnrollButton } from "@/components/ui/EnrollButton";
 import { Clock, IndianRupee, MapPin, CheckCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { COMPANY_INFO, PHONE_HREF } from "@/lib/constants";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiGet } from "@/lib/api";
+import { apiGet, resolveApiUrl } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Course {
@@ -38,9 +38,10 @@ export default function CourseDetailPage() {
     const [currentImageIdx, setCurrentImageIdx] = useState(0);
     const [direction, setDirection] = useState(0);
 
-    const displayImages = course?.images && course.images.length > 0
+    const displayImages = (course?.images && course.images.length > 0
         ? course.images
-        : (course?.image ? [course.image] : []);
+        : (course?.image ? [course.image] : [])
+    ).map((src) => resolveApiUrl(src));
 
     useEffect(() => {
         if (displayImages.length <= 1) return;

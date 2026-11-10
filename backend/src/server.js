@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
+const { MongoRateLimitStore } = require("./utils/rateLimitStore");
 
 // Fail fast when required configuration is missing, instead of failing on the first request.
 const REQUIRED_ENV = ["MONGODB_URI", "JWT_SECRET"];
@@ -44,15 +45,27 @@ app.use(
     })
 );
 // Vercel Functions reject request bodies over 4.5 MB, so keep the limit below that.
-app.use(express.json({ limit: "4mb" }));
+app.use(
+    express.json({
+        limit: "4mb",
+        // The Razorpay webhook signature is computed over the raw request body
+        verify: (req, res, buf) => {
+            if (req.originalUrl.startsWith("/api/payments/webhook")) req.rawBody = buf;
+        },
+    })
+);
 app.use(express.urlencoded({ limit: "4mb", extended: true }));
 
-// Rate limits for endpoints that are attractive to brute force or spam
+// Rate limits for endpoints that are attractive to brute force or spam.
+// Counters live in MongoDB so they are shared by all serverless instances. If the store fails,
+// the request is let through rather than locking everyone out.
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 20,
     standardHeaders: "draft-7",
     legacyHeaders: false,
+    store: new MongoRateLimitStore("auth"),
+    passOnStoreError: true,
     message: { error: "Too many attempts. Please try again in 15 minutes." },
 });
 const enquiryLimiter = rateLimit({
@@ -60,6 +73,8 @@ const enquiryLimiter = rateLimit({
     limit: 10,
     standardHeaders: "draft-7",
     legacyHeaders: false,
+    store: new MongoRateLimitStore("enquiry"),
+    passOnStoreError: true,
     message: { error: "Too many enquiries. Please try again later." },
 });
 
@@ -80,7 +95,7 @@ app.use(async (req, res, next) => {
     }
 });
 
-// Routes
+// Routes (the limiters run after the database middleware because their store uses MongoDB)
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 app.use("/api/admin/login", authLimiter);

@@ -12,6 +12,17 @@ export function getServerApiBase() {
     return "http://localhost:5000/api";
 }
 
+// The API returns course images as /api/... paths. On Vercel those are same-origin; in local
+// development the API runs on another port, so point them at NEXT_PUBLIC_API_URL instead.
+export function resolveApiUrl(src: string): string;
+export function resolveApiUrl(src: string | undefined | null): string | undefined | null;
+export function resolveApiUrl(src: string | undefined | null) {
+    if (src && src.startsWith("/api/") && API_BASE !== "/api") {
+        return `${API_BASE}${src.slice("/api".length)}`;
+    }
+    return src;
+}
+
 async function parseJson(res: Response) {
     try {
         return await res.json();
