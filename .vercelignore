@@ -1,0 +1,19 @@
+# Upload only source; Vercel installs dependencies and builds remotely
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/out
+**/build
+*.tsbuildinfo
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+*.zip
+*.pem
+*.log
+docs
+.claude
+.vercel

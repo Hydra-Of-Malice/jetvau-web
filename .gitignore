@@ -24,3 +24,6 @@ build/
 
 # local Claude Code preview config
 .claude/
+
+.vercel
+.env*
