@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiPost } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
-import { ShieldCheck, Loader2, CheckCircle } from "lucide-react";
+import { ShieldCheck, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 declare global {
     interface Window {
@@ -19,39 +20,39 @@ interface EnrollButtonProps {
     isEnrolled?: boolean;
 }
 
+interface RazorpayResponse {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+}
+
 export function EnrollButton({ courseId, courseName, coursePrice, isEnrolled }: EnrollButtonProps) {
     const { user, token, isAuthenticated } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const handleEnroll = async () => {
+        setError("");
+
         if (!isAuthenticated) {
-            router.push("/login");
+            // Come back to this course after signing in
+            router.push(`/login?next=${encodeURIComponent(pathname)}`);
+            return;
+        }
+
+        if (typeof window === "undefined" || !window.Razorpay) {
+            setError("The payment window is still loading. Please try again in a moment.");
             return;
         }
 
         setLoading(true);
 
         try {
-            const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+            const data = await apiPost("/payments/create-order", { courseId }, token);
 
-            const res = await fetch(`${API_BASE}/payments/create-order`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ courseId }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.error || "Failed to create order");
-            }
-
-            // Open Razorpay checkout
-            const options = {
+            const razorpay = new window.Razorpay({
                 key: data.key,
                 amount: data.order.amount,
                 currency: data.order.currency,
@@ -61,70 +62,80 @@ export function EnrollButton({ courseId, courseName, coursePrice, isEnrolled }: 
                 prefill: {
                     name: user?.name,
                     email: user?.email,
+                    contact: user?.phone,
                 },
                 theme: {
                     color: "#EA580C",
                 },
-                handler: async (response: any) => {
+                modal: {
+                    ondismiss: () => setLoading(false),
+                },
+                handler: async (response: RazorpayResponse) => {
+                    setLoading(true);
                     try {
-                        const verifyRes = await fetch(`${API_BASE}/payments/verify`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({
+                        await apiPost(
+                            "/payments/verify",
+                            {
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
-                            }),
-                        });
-
-                        const verifyData = await verifyRes.json();
-
-                        if (verifyData.success) {
-                            router.push("/my-courses");
-                        } else {
-                            alert("Payment verification failed. Please contact support.");
-                        }
-                    } catch {
-                        alert("Payment verification error. Please contact support.");
+                            },
+                            token
+                        );
+                        router.push("/my-courses");
+                    } catch (err) {
+                        setError(
+                            `${err instanceof Error ? err.message : "Payment verification failed"}. If money was deducted, contact us with payment ID ${response.razorpay_payment_id}.`
+                        );
+                        setLoading(false);
                     }
                 },
-            };
+            });
 
-            const razorpay = new window.Razorpay(options);
+            razorpay.on("payment.failed", (resp: { error?: { description?: string } }) => {
+                setError(resp?.error?.description || "Payment failed. Please try again.");
+                setLoading(false);
+            });
+
             razorpay.open();
-        } catch (error: any) {
-            alert(error.message || "Something went wrong");
-        } finally {
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Something went wrong");
             setLoading(false);
         }
     };
 
     if (isEnrolled) {
         return (
-            <div className="w-full flex items-center justify-center gap-2 text-lg h-12 bg-green-500 text-white rounded-lg font-semibold cursor-default shadow-sm border border-green-600">
-                <CheckCircle size={20} />
+            <div className="w-full flex items-center justify-center gap-2 text-lg h-12 bg-green-600 text-white rounded-lg font-semibold cursor-default shadow-sm">
+                <CheckCircle size={20} aria-hidden="true" />
                 Enrolled
             </div>
         );
     }
 
     return (
-        <Button
-            className="w-full text-lg h-12"
-            onClick={handleEnroll}
-            disabled={loading}
-        >
-            {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-                <>
-                    <ShieldCheck size={18} className="mr-2" />
-                    Enroll Now — {coursePrice}
-                </>
+        <div className="space-y-2">
+            <Button
+                className="w-full text-lg h-12"
+                onClick={handleEnroll}
+                disabled={loading}
+                aria-busy={loading}
+            >
+                {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" aria-label="Processing" />
+                ) : (
+                    <>
+                        <ShieldCheck size={18} className="mr-2" aria-hidden="true" />
+                        Enroll now, {coursePrice}
+                    </>
+                )}
+            </Button>
+            {error && (
+                <p role="alert" className="flex items-start gap-2 text-sm text-red-600">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5" aria-hidden="true" />
+                    {error}
+                </p>
             )}
-        </Button>
+        </div>
     );
 }

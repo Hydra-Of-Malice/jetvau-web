@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -10,13 +11,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ className, variant = 'primary', size = 'md', isLoading, asChild = false, ...props }, ref) => {
+    ({ className, variant = 'primary', size = 'md', isLoading, asChild = false, disabled, children, ...props }, ref) => {
 
         const variants = {
-            primary: "bg-[var(--color-primary)] text-white hover:bg-opacity-90 shadow-md",
-            secondary: "bg-[var(--color-secondary)] text-white hover:bg-opacity-90 shadow-md",
-            outline: "border-2 border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white",
-            ghost: "text-[var(--color-primary)] hover:bg-slate-100",
+            primary: "bg-primary text-white hover:bg-slate-800 shadow-sm",
+            secondary: "bg-secondary text-white hover:bg-orange-700 shadow-sm",
+            outline: "border-2 border-primary text-primary hover:bg-primary hover:text-white",
+            ghost: "text-primary hover:bg-slate-100",
             danger: "bg-red-600 text-white hover:bg-red-700",
         }
 
@@ -28,7 +29,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         }
 
         const buttonClasses = cn(
-            "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+            "inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
             variants[variant],
             sizes[size],
             className
@@ -37,22 +38,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         if (asChild) {
             return (
                 <Slot className={buttonClasses} ref={ref} {...props}>
-                    {props.children}
+                    {children}
                 </Slot>
             )
         }
 
         return (
             <button
+                {...props}
                 className={buttonClasses}
                 ref={ref}
-                disabled={isLoading || props.disabled}
-                {...props}
+                disabled={isLoading || disabled}
             >
-                {isLoading && (
-                    <span className="animate-spin mr-2">⏳</span>
-                )}
-                {props.children}
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
+                {children}
             </button>
         )
     }

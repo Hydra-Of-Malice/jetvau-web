@@ -15,6 +15,7 @@ const enrollmentSchema = new mongoose.Schema(
         razorpayOrderId: {
             type: String,
             required: true,
+            index: true,
         },
         razorpayPaymentId: {
             type: String,

@@ -18,8 +18,9 @@ export function AuthProvider({ children }) {
                         localStorage.removeItem('admin_token');
                     }
                 })
-                .catch(() => {
-                    localStorage.removeItem('admin_token');
+                .catch((err) => {
+                    // Keep the token on network errors; drop it only when the server rejects it
+                    if (err.response?.status === 401) localStorage.removeItem('admin_token');
                 })
                 .finally(() => setLoading(false));
         } else {

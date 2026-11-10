@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { API_BASE, apiPost } from "@/lib/api";
 
 interface User {
     id: string;
@@ -22,8 +23,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -48,39 +47,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (res.ok) {
                 const data = await res.json();
                 setUser(data.user);
-            } else {
+            } else if (res.status === 401) {
+                // Only an auth failure means the token is bad; keep it on network or server errors
                 localStorage.removeItem("token");
                 setToken(null);
             }
         } catch {
-            localStorage.removeItem("token");
-            setToken(null);
+            // Network error: keep the token so a temporary outage doesn't sign the user out
         } finally {
             setLoading(false);
         }
     };
 
     const login = async (email: string, password: string) => {
-        const res = await fetch(`${API_BASE}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Login failed");
+        const data = await apiPost("/auth/login", { email, password });
         localStorage.setItem("token", data.token);
         setToken(data.token);
         setUser(data.user);
     };
 
     const register = async (name: string, email: string, phone: string, password: string) => {
-        const res = await fetch(`${API_BASE}/auth/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, phone, password }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Registration failed");
+        const data = await apiPost("/auth/register", { name, email, phone, password });
         localStorage.setItem("token", data.token);
         setToken(data.token);
         setUser(data.user);

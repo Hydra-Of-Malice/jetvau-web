@@ -31,12 +31,13 @@ export default function MyCoursesPage() {
     useEffect(() => {
         if (authLoading) return;
         if (!user) {
-            router.push("/login");
+            router.replace("/login?next=/my-courses");
             return;
         }
 
         apiGet("/payments/my-enrollments", token)
-            .then((data) => setEnrollments(data.enrollments || []))
+            // Skip enrollments whose course no longer exists
+            .then((data) => setEnrollments((data.enrollments || []).filter((e: Enrollment) => e.course)))
             .catch(console.error)
             .finally(() => setLoading(false));
     }, [user, token, authLoading, router]);
@@ -44,7 +45,7 @@ export default function MyCoursesPage() {
     if (authLoading || loading) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[var(--color-secondary)]" />
+                <Loader2 className="w-8 h-8 animate-spin text-secondary" aria-label="Loading" />
             </div>
         );
     }
@@ -56,15 +57,15 @@ export default function MyCoursesPage() {
         <div className="min-h-screen bg-slate-50 pt-24 pb-16">
             <div className="container px-4">
                 <div className="mb-10">
-                    <h1 className="text-3xl font-bold text-gray-900">My Courses</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">My courses</h1>
                     <p className="text-gray-500 mt-2">
-                        Welcome back, {user?.name}! Here are your enrolled courses.
+                        Courses you are enrolled in and payments in progress
                     </p>
                 </div>
 
                 {enrollments.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-                        <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
+                        <BookOpen size={48} className="mx-auto text-gray-300 mb-4" aria-hidden="true" />
                         <h3 className="text-xl font-semibold text-gray-700 mb-2">
                             No courses yet
                         </h3>
@@ -73,10 +74,10 @@ export default function MyCoursesPage() {
                         </p>
                         <Link
                             href="/courses"
-                            className="inline-flex items-center gap-2 bg-[var(--color-secondary)] text-white px-6 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-colors"
+                            className="inline-flex items-center gap-2 bg-secondary text-white px-6 py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
                         >
-                            Browse Courses
-                            <ArrowRight size={18} />
+                            Browse courses
+                            <ArrowRight size={18} aria-hidden="true" />
                         </Link>
                     </div>
                 ) : (
@@ -84,8 +85,8 @@ export default function MyCoursesPage() {
                         {paidEnrollments.length > 0 && (
                             <div>
                                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                    <CheckCircle size={20} className="text-green-600" />
-                                    Active Enrollments ({paidEnrollments.length})
+                                    <CheckCircle size={20} className="text-green-600" aria-hidden="true" />
+                                    Active enrollments ({paidEnrollments.length})
                                 </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {paidEnrollments.map((enrollment) => (
@@ -93,16 +94,21 @@ export default function MyCoursesPage() {
                                             key={enrollment._id}
                                             className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
                                         >
-                                            <div className="h-40 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center">
-                                                <BookOpen size={40} className="text-white/80" />
+                                            <div className="h-40 bg-primary flex items-center justify-center overflow-hidden">
+                                                {enrollment.course.image ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={enrollment.course.image} alt="" loading="lazy" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <BookOpen size={40} className="text-white/80" aria-hidden="true" />
+                                                )}
                                             </div>
                                             <div className="p-5">
                                                 <div className="flex items-center justify-between mb-2">
                                                     <span className="text-xs font-semibold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">
-                                                        ENROLLED
+                                                        Enrolled
                                                     </span>
                                                     <span className="text-xs text-gray-400 flex items-center gap-1">
-                                                        <Clock size={12} />
+                                                        <Clock size={12} aria-hidden="true" />
                                                         {enrollment.course.duration}
                                                     </span>
                                                 </div>
@@ -114,9 +120,9 @@ export default function MyCoursesPage() {
                                                 </p>
                                                 <Link
                                                     href={`/courses/${enrollment.course.slug}`}
-                                                    className="text-sm text-[var(--color-secondary)] font-semibold hover:underline flex items-center gap-1"
+                                                    className="text-sm text-secondary font-semibold hover:underline flex items-center gap-1"
                                                 >
-                                                    View Details <ArrowRight size={14} />
+                                                    View details <ArrowRight size={14} aria-hidden="true" />
                                                 </Link>
                                             </div>
                                         </div>
@@ -128,27 +134,27 @@ export default function MyCoursesPage() {
                         {pendingEnrollments.length > 0 && (
                             <div>
                                 <h2 className="text-lg font-bold text-gray-900 mb-4">
-                                    Pending Payment ({pendingEnrollments.length})
+                                    Pending payment ({pendingEnrollments.length})
                                 </h2>
                                 <div className="space-y-3">
                                     {pendingEnrollments.map((enrollment) => (
                                         <div
                                             key={enrollment._id}
-                                            className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center justify-between"
+                                            className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center justify-between gap-4"
                                         >
                                             <div>
                                                 <p className="font-medium text-gray-900">
                                                     {enrollment.course.title}
                                                 </p>
                                                 <p className="text-sm text-gray-500">
-                                                    Payment pending — {enrollment.course.displayPrice}
+                                                    Payment pending, {enrollment.course.displayPrice}
                                                 </p>
                                             </div>
                                             <Link
                                                 href={`/courses/${enrollment.course.slug}`}
-                                                className="text-sm bg-[var(--color-secondary)] text-white px-4 py-2 rounded-lg font-medium hover:bg-opacity-90"
+                                                className="text-sm bg-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-700 transition-colors shrink-0"
                                             >
-                                                Complete Payment
+                                                Complete payment
                                             </Link>
                                         </div>
                                     ))}

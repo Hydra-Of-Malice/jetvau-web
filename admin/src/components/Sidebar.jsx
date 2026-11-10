@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { LayoutDashboard, BookOpen, MessageSquare, Users, LogOut } from 'lucide-react';
@@ -12,25 +11,9 @@ const links = [
 
 export default function Sidebar() {
     const { user, logout } = useAuth();
-    const [loggingOut, setLoggingOut] = useState(false);
-
-    const handleLogout = () => {
-        setLoggingOut(true);
-        setTimeout(() => {
-            logout();
-        }, 1200);
-    };
 
     return (
         <>
-            {/* Logout Overlay */}
-            {loggingOut && (
-                <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center">
-                    <div className="animate-spin w-10 h-10 border-4 border-white border-t-secondary rounded-full mb-4"></div>
-                    <p className="text-white text-lg font-semibold animate-pulse">Signing out...</p>
-                </div>
-            )}
-
             <aside className="fixed left-0 top-0 h-screen w-64 bg-primary text-white flex flex-col z-50">
                 {/* Logo */}
                 <div className="p-6 border-b border-white/10">
@@ -59,7 +42,7 @@ export default function Sidebar() {
                                 }`
                             }
                         >
-                            <link.icon size={20} />
+                            <link.icon size={20} aria-hidden="true" />
                             {link.label}
                         </NavLink>
                     ))}
@@ -68,15 +51,16 @@ export default function Sidebar() {
                 {/* User + Logout */}
                 <div className="p-4 border-t border-white/10">
                     <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium">{user?.name}</p>
-                            <p className="text-xs text-slate-400">{user?.email}</p>
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{user?.name}</p>
+                            <p className="text-xs text-slate-400 truncate">{user?.email}</p>
                         </div>
                         <button
-                            onClick={handleLogout}
-                            disabled={loggingOut}
-                            className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors disabled:opacity-50"
-                            title="Logout"
+                            type="button"
+                            onClick={logout}
+                            className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                            title="Sign out"
+                            aria-label="Sign out"
                         >
                             <LogOut size={18} />
                         </button>

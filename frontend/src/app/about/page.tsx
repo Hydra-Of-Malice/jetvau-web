@@ -12,7 +12,7 @@ export default function AboutPage() {
             {/* Hero */}
             <div className="bg-slate-900 text-white py-20">
                 <div className="container text-center max-w-3xl">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-6">Empowering India's Drone Ecosystem</h1>
+                    <h1 className="text-4xl md:text-5xl font-bold mb-6">Training India&apos;s next drone pilots</h1>
                     <p className="text-xl text-slate-300">
                         We are dedicated to producing the safest, most skilled remote pilots in the industry.
                     </p>
@@ -23,7 +23,7 @@ export default function AboutPage() {
                 {/* Mission */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-20">
                     <div>
-                        <h2 className="text-3xl font-bold text-slate-900 mb-6">Who We Are</h2>
+                        <h2 className="text-3xl font-bold text-slate-900 mb-6">Who we are</h2>
                         <p className="text-lg text-slate-600 mb-4 leading-relaxed">
                             JetVau Aerospace is a premier Remote Pilot Training Organization (RPTO) based in Jabalpur, Madhya Pradesh.
                             Focused exclusively on the small drone category, we provide rigorous training that meets the highest standards of the DGCA.
@@ -32,26 +32,30 @@ export default function AboutPage() {
                             Our curriculum is designed not just for passing exams, but for real-world operational readiness in sectors like agriculture, surveillance, and cinematography.
                         </p>
                     </div>
-                    <div className="bg-slate-100 rounded-2xl h-80 flex items-center justify-center text-slate-400">
-                        About Image Placeholder
-                    </div>
+                    {/* Photo slot: add public/images/about.jpg */}
+                    <div
+                        className="bg-slate-100 bg-cover bg-center rounded-2xl h-80"
+                        style={{ backgroundImage: "url('/images/about.jpg')" }}
+                        role="img"
+                        aria-label="JetVau Aerospace training center"
+                    />
                 </div>
 
                 {/* Values */}
                 <div className="bg-slate-50 rounded-3xl p-12">
-                    <h2 className="text-3xl font-bold text-center text-slate-900 mb-12">Our Core Values</h2>
+                    <h2 className="text-3xl font-bold text-center text-slate-900 mb-12">Our core values</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                         <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-[var(--color-secondary)]/10 text-[var(--color-secondary)] rounded-full flex items-center justify-center mb-6">
-                                <Shield size={32} />
+                            <div className="w-16 h-16 bg-secondary/10 text-secondary rounded-full flex items-center justify-center mb-6">
+                                <Shield size={32} aria-hidden="true" />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 mb-3">Safety First</h3>
+                            <h3 className="text-xl font-bold text-slate-900 mb-3">Safety first</h3>
                             <p className="text-slate-600">Zero compromise on safety protocols. We instill a safety-first mindset in every pilot.</p>
                         </div>
 
                         <div className="flex flex-col items-center">
-                            <div className="w-16 h-16 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full flex items-center justify-center mb-6">
-                                <Award size={32} />
+                            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-6">
+                                <Award size={32} aria-hidden="true" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 mb-3">Excellence</h3>
                             <p className="text-slate-600">Striving for perfection in every flight. We train precision and control.</p>
@@ -59,10 +63,10 @@ export default function AboutPage() {
 
                         <div className="flex flex-col items-center">
                             <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
-                                <Users size={32} />
+                                <Users size={32} aria-hidden="true" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-900 mb-3">Community</h3>
-                            <p className="text-slate-600">Building a network of professional pilots to support India's drone ambitions.</p>
+                            <p className="text-slate-600">Building a network of professional pilots to support India&apos;s drone ambitions.</p>
                         </div>
                     </div>
                 </div>

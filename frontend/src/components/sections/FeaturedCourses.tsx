@@ -27,9 +27,7 @@ export function FeaturedCourses() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        fetch(`${API_BASE}/courses`, { cache: "no-store" })
-            .then((res) => res.json())
+        apiGet("/courses")
             .then((data) => setCourses(data.courses || []))
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -40,7 +38,7 @@ export function FeaturedCourses() {
             apiGet("/payments/my-enrollments", token)
                 .then((data) => {
                     const paidIds = data.enrollments
-                        ?.filter((e: any) => e.status === "PAID")
+                        ?.filter((e: any) => e.status === "PAID" && e.course)
                         .map((e: any) => e.course._id) || [];
                     setEnrolledCourseIds(new Set(paidIds));
                 })
@@ -56,7 +54,7 @@ export function FeaturedCourses() {
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                     <div className="space-y-2 max-w-2xl">
                         <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
-                            Industry-Ready <span className="text-[var(--color-secondary)]">Drone Training</span>
+                            Industry-ready <span className="text-secondary">drone training</span>
                         </h2>
                         <p className="text-slate-600 text-lg">
                             Authorized training for the Small Category Remote Pilot Certificate (RPC) and specialized operational courses.
@@ -64,19 +62,19 @@ export function FeaturedCourses() {
                     </div>
                     <Link
                         href="/courses"
-                        className="group flex items-center gap-2 font-semibold text-[var(--color-primary)] hover:text-[var(--color-secondary)] transition-colors"
+                        className="flex items-center gap-2 font-semibold text-primary hover:text-secondary transition-colors"
                     >
-                        View All Programs <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                        View all programs <ArrowRight size={20} aria-hidden="true" />
                     </Link>
                 </div>
 
                 {loading ? (
                     <div className="flex items-center justify-center h-48">
-                        <Loader2 className="w-8 h-8 animate-spin text-[var(--color-secondary)]" />
+                        <Loader2 className="w-8 h-8 animate-spin text-secondary" aria-label="Loading courses" />
                     </div>
                 ) : courses.length === 0 ? (
                     <div className="text-center py-16">
-                        <p className="text-slate-500 text-lg">Courses coming soon!</p>
+                        <p className="text-slate-500 text-lg">New courses are coming soon</p>
                     </div>
                 ) : (
                     <div>
@@ -84,10 +82,10 @@ export function FeaturedCourses() {
                             {courses.slice(0, 3).map((course, idx) => (
                                 <motion.div
                                     key={course._id}
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: 0, y: 12 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
-                                    transition={{ delay: idx * 0.1, duration: 0.5 }}
+                                    transition={{ delay: idx * 0.05, duration: 0.3, ease: "easeOut" }}
                                 >
                                     <CourseCard
                                         slug={course.slug}
@@ -107,9 +105,9 @@ export function FeaturedCourses() {
                             <div className="text-center mt-12">
                                 <Link
                                     href="/courses"
-                                    className="inline-flex items-center gap-2 bg-[var(--color-secondary)] text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-opacity-90 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                                    className="inline-flex items-center gap-2 bg-secondary text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-orange-700 transition-colors shadow-sm"
                                 >
-                                    View All Programs <ArrowRight size={20} />
+                                    View all programs <ArrowRight size={20} aria-hidden="true" />
                                 </Link>
                             </div>
                         )}

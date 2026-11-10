@@ -15,6 +15,7 @@ const courseSchema = new mongoose.Schema(
             type: String,
             required: [true, "Course title is required"],
             trim: true,
+            maxlength: [200, "Title is too long"],
         },
         slug: {
             type: String,
@@ -33,6 +34,11 @@ const courseSchema = new mongoose.Schema(
         price: {
             type: Number,
             required: [true, "Price is required (in paise)"],
+            min: [100, "Price must be at least ₹1"],
+            validate: {
+                validator: Number.isInteger,
+                message: "Price must be a whole number of paise",
+            },
         },
         displayPrice: {
             type: String,
@@ -52,6 +58,7 @@ const courseSchema = new mongoose.Schema(
         description: {
             type: String,
             required: [true, "Description is required"],
+            maxlength: [5000, "Description is too long"],
         },
         features: [{ type: String }],
         syllabus: [syllabusItemSchema],
@@ -72,6 +79,9 @@ courseSchema.pre("save", function (next) {
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/(^-|-$)/g, "");
+        if (!this.slug) {
+            this.invalidate("title", "Title must contain letters or numbers");
+        }
     }
     next();
 });

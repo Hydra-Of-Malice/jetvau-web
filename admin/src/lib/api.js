@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/api';
+// Same-origin by default: on Vercel /api is routed to the backend service.
+// For local development without `vercel dev`, set VITE_API_URL=http://localhost:5000/api in admin/.env.
+const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 const api = axios.create({
     baseURL: API_BASE,
@@ -15,13 +17,17 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-// Handle 401 responses
+// A 401 on any request except the login itself means the session expired
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        const isLoginRequest = error.config?.url?.includes('/admin/login');
+        if (error.response?.status === 401 && !isLoginRequest) {
             localStorage.removeItem('admin_token');
-            window.location.href = '/login';
+            const loginPath = `${import.meta.env.BASE_URL}login`;
+            if (window.location.pathname !== loginPath) {
+                window.location.href = loginPath;
+            }
         }
         return Promise.reject(error);
     }

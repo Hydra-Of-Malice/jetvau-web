@@ -12,10 +12,10 @@ export default function StatsCard({ title, value, icon: Icon, color = 'blue' }) 
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium text-slate-500">{title}</h3>
                 <div className={`p-2 rounded-lg ${colors[color]}`}>
-                    <Icon size={20} />
+                    <Icon size={20} aria-hidden="true" />
                 </div>
             </div>
-            <p className="text-3xl font-bold text-slate-900">{value}</p>
+            <p className="text-3xl font-bold text-slate-900 tabular-nums">{value}</p>
         </div>
     );
 }

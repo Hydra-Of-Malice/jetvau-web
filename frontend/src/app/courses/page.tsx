@@ -25,9 +25,7 @@ export default function CoursesPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        fetch(`${API_BASE}/courses`, { cache: "no-store" })
-            .then((res) => res.json())
+        apiGet("/courses")
             .then((data) => setCourses(data.courses || []))
             .catch(console.error)
             .finally(() => setLoading(false));
@@ -38,7 +36,7 @@ export default function CoursesPage() {
             apiGet("/payments/my-enrollments", token)
                 .then((data) => {
                     const paidIds = data.enrollments
-                        ?.filter((e: any) => e.status === "PAID")
+                        ?.filter((e: any) => e.status === "PAID" && e.course)
                         .map((e: any) => e.course._id) || [];
                     setEnrolledCourseIds(new Set(paidIds));
                 })
@@ -52,7 +50,7 @@ export default function CoursesPage() {
         <div className="min-h-screen bg-slate-50 pt-24 pb-16">
             <div className="container">
                 <div className="max-w-3xl mx-auto text-center mb-12 px-4">
-                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Our Training Programs</h1>
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Our training programs</h1>
                     <p className="text-base md:text-lg text-slate-600">
                         Choose the right path for your drone career. Whether you want to be a certified pilot or a specialized operator, we have the right course for you.
                     </p>
@@ -60,11 +58,11 @@ export default function CoursesPage() {
 
                 {loading ? (
                     <div className="flex items-center justify-center h-48">
-                        <Loader2 className="w-8 h-8 animate-spin text-[var(--color-secondary)]" />
+                        <Loader2 className="w-8 h-8 animate-spin text-secondary" aria-label="Loading courses" />
                     </div>
                 ) : courses.length === 0 ? (
                     <div className="text-center py-16">
-                        <p className="text-slate-500 text-lg">No courses available at the moment. Check back soon!</p>
+                        <p className="text-slate-500 text-lg">No courses are open for enrollment right now. Check back soon or contact us.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">

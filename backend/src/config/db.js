@@ -1,13 +1,34 @@
 const mongoose = require("mongoose");
 
+// Turn query filters like { email: { $gt: "" } } coming from user input into plain equality checks.
+mongoose.set("sanitizeFilter", true);
+mongoose.set("strictQuery", true);
+
+// Reuse one connection across requests and across warm serverless invocations.
+let connectionPromise = null;
+
 const connectDB = async () => {
-    try {
-        const conn = await mongoose.connect(process.env.MONGODB_URI);
-        console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    } catch (error) {
-        console.error(`❌ MongoDB Error: ${error.message}`);
-        process.exit(1);
+    if (mongoose.connection.readyState === 1) {
+        return mongoose.connection;
     }
+
+    if (!connectionPromise) {
+        connectionPromise = mongoose
+            .connect(process.env.MONGODB_URI, {
+                serverSelectionTimeoutMS: 10000,
+            })
+            .then((conn) => {
+                console.log(`MongoDB connected: ${conn.connection.host}`);
+                return conn.connection;
+            })
+            .catch((error) => {
+                // Allow the next request to retry instead of caching the failure forever
+                connectionPromise = null;
+                throw error;
+            });
+    }
+
+    return connectionPromise;
 };
 
 module.exports = connectDB;

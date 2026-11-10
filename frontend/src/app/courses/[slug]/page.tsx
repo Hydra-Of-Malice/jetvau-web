@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { notFound, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { EnrollButton } from "@/components/ui/EnrollButton";
 import { Clock, IndianRupee, MapPin, CheckCircle, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { COMPANY_INFO, PHONE_HREF } from "@/lib/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiGet } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,7 +24,7 @@ interface Course {
     images?: string[];
     description: string;
     features: string[];
-    syllabus: { title: string; description: string }[];
+    syllabus: { day?: string; title: string; description: string }[];
 }
 
 export default function CourseDetailPage() {
@@ -51,12 +52,7 @@ export default function CourseDetailPage() {
     }, [displayImages.length, currentImageIdx]);
 
     useEffect(() => {
-        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        fetch(`${API_BASE}/courses/${slug}`, { cache: "no-store" })
-            .then((res) => {
-                if (!res.ok) throw new Error("Course not found");
-                return res.json();
-            })
+        apiGet(`/courses/${encodeURIComponent(slug)}`)
             .then((data) => setCourse(data.course))
             .catch(() => setError(true))
             .finally(() => setLoading(false));
@@ -66,7 +62,7 @@ export default function CourseDetailPage() {
         if (course && user && token) {
             apiGet("/payments/my-enrollments", token)
                 .then((data) => {
-                    const isPaid = data.enrollments?.some((e: any) => e.course._id === course._id && e.status === "PAID");
+                    const isPaid = data.enrollments?.some((e: any) => e.course?._id === course._id && e.status === "PAID");
                     setIsEnrolled(isPaid);
                 })
                 .catch(console.error);
@@ -78,7 +74,7 @@ export default function CourseDetailPage() {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[var(--color-secondary)]" />
+                <Loader2 className="w-8 h-8 animate-spin text-secondary" aria-label="Loading course" />
             </div>
         );
     }
@@ -86,10 +82,10 @@ export default function CourseDetailPage() {
     if (error || !course) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center">
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">Course Not Found</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-4">Course not found</h1>
                 <p className="text-gray-500 mb-6">The course you&apos;re looking for doesn&apos;t exist.</p>
-                <Link href="/courses" className="text-[var(--color-secondary)] font-semibold hover:underline">
-                    Browse Courses
+                <Link href="/courses" className="text-secondary font-semibold hover:underline">
+                    Browse courses
                 </Link>
             </div>
         );
@@ -102,7 +98,7 @@ export default function CourseDetailPage() {
                 <div className="container">
                     <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
                         <div className="flex-1 max-w-3xl">
-                            <span className="inline-block px-3 py-1 rounded-full bg-[var(--color-secondary)]/20 border border-[var(--color-secondary)] text-[var(--color-secondary)] text-sm font-semibold mb-4">
+                            <span className="inline-block px-3 py-1 rounded-full bg-secondary/20 text-secondary text-sm font-semibold mb-4">
                                 {course.category}
                             </span>
                             <h1 className="text-3xl md:text-5xl font-bold mb-6">{course.title}</h1>
@@ -110,19 +106,19 @@ export default function CourseDetailPage() {
 
                             <div className="flex flex-wrap gap-6 text-sm font-medium text-slate-400">
                                 <div className="flex items-center gap-2">
-                                    <Clock size={20} className="text-[var(--color-secondary)]" />
+                                    <Clock size={20} className="text-secondary" aria-hidden="true" />
                                     <span>{course.duration}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <IndianRupee size={20} className="text-[var(--color-secondary)]" />
+                                    <IndianRupee size={20} className="text-secondary" aria-hidden="true" />
                                     <span>{course.displayPrice}</span>
                                     {course.originalPrice && (
                                         <span className="line-through text-slate-500 text-sm">{course.originalPrice}</span>
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <MapPin size={20} className="text-[var(--color-secondary)]" />
-                                    <span>On-Site (Jabalpur)</span>
+                                    <MapPin size={20} className="text-secondary" aria-hidden="true" />
+                                    <span>On-site, Jabalpur</span>
                                 </div>
                             </div>
                         </div>
@@ -132,7 +128,7 @@ export default function CourseDetailPage() {
                                     <motion.img
                                         key={currentImageIdx}
                                         src={displayImages[currentImageIdx]}
-                                        alt={course?.title || 'Course Image'}
+                                        alt={`${course.title}, image ${currentImageIdx + 1} of ${displayImages.length}`}
                                         custom={direction}
                                         variants={{
                                             enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
@@ -142,7 +138,7 @@ export default function CourseDetailPage() {
                                         initial="enter"
                                         animate="center"
                                         exit="exit"
-                                        transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
+                                        transition={{ x: { duration: 0.3, ease: "easeOut" }, opacity: { duration: 0.2 } }}
                                         className="absolute inset-0 w-full h-full object-cover"
                                     />
                                 </AnimatePresence>
@@ -154,7 +150,8 @@ export default function CourseDetailPage() {
                                                 setDirection(-1);
                                                 setCurrentImageIdx(prev => prev === 0 ? displayImages.length - 1 : prev - 1);
                                             }}
-                                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-1.5 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity z-10"
+                                            aria-label="Previous image"
                                         >
                                             <ChevronLeft size={20} />
                                         </button>
@@ -163,7 +160,8 @@ export default function CourseDetailPage() {
                                                 setDirection(1);
                                                 setCurrentImageIdx(prev => prev === displayImages.length - 1 ? 0 : prev + 1);
                                             }}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-1.5 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity z-10"
+                                            aria-label="Next image"
                                         >
                                             <ChevronRight size={20} />
                                         </button>
@@ -176,7 +174,8 @@ export default function CourseDetailPage() {
                                                         setCurrentImageIdx(idx);
                                                     }}
                                                     className={`w-2 h-2 rounded-full transition-colors ${idx === currentImageIdx ? 'bg-white' : 'bg-white/50 hover:bg-white/80'}`}
-                                                    title={`Go to slide ${idx + 1}`}
+                                                    aria-label={`Go to image ${idx + 1}`}
+                                                    aria-current={idx === currentImageIdx}
                                                 />
                                             ))}
                                         </div>
@@ -196,11 +195,11 @@ export default function CourseDetailPage() {
 
                         {/* Overview */}
                         <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                            <h2 className="text-2xl font-bold text-slate-900 mb-6">What You Will Learn</h2>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-6">What you will learn</h2>
                             <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {course.features.map((feat, idx) => (
                                     <li key={idx} className="flex items-start gap-3">
-                                        <CheckCircle className="text-[var(--color-secondary)] shrink-0 mt-1" size={20} />
+                                        <CheckCircle className="text-secondary shrink-0 mt-1" size={20} aria-hidden="true" />
                                         <span className="text-slate-700">{feat}</span>
                                     </li>
                                 ))}
@@ -210,10 +209,11 @@ export default function CourseDetailPage() {
                         {/* Curriculum from DB */}
                         {course.syllabus && course.syllabus.length > 0 && (
                             <section>
-                                <h2 className="text-2xl font-bold text-slate-900 mb-6">Course Syllabus</h2>
+                                <h2 className="text-2xl font-bold text-slate-900 mb-6">Course syllabus</h2>
                                 <div className="space-y-4">
                                     {course.syllabus.map((item, idx) => (
                                         <div key={idx} className="bg-white p-6 rounded-xl border border-slate-200">
+                                            {item.day && <p className="text-sm font-medium text-secondary mb-1">{item.day}</p>}
                                             <h3 className="font-bold text-lg mb-2">{item.title}</h3>
                                             <p className="text-slate-600">{item.description}</p>
                                         </div>
@@ -226,9 +226,9 @@ export default function CourseDetailPage() {
                     {/* Sidebar */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-24 bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
-                            <h3 className="text-xl font-bold mb-4">Secure Your Seat</h3>
+                            <h3 className="text-xl font-bold mb-4">Secure your seat</h3>
                             <p className="text-sm text-slate-500 mb-6">
-                                Upcoming batch starts next Monday. Limited slots available.
+                                Seats are limited in each batch. Ask our admissions team about upcoming batch dates.
                             </p>
 
                             <div className="space-y-4">
@@ -240,16 +240,16 @@ export default function CourseDetailPage() {
                                 />
                                 <Button variant="outline" className="w-full" asChild>
                                     <Link href="/contact">
-                                        Have Questions? Contact Us
+                                        Have questions? Contact us
                                     </Link>
                                 </Button>
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-slate-100">
-                                <h4 className="font-semibold mb-2">Need Help?</h4>
-                                <p className="text-sm text-slate-500 mb-2">Call our admission/counseling team.</p>
-                                <a href="tel:+919876543210" className="text-[var(--color-secondary)] font-bold hover:underline">
-                                    +91 98765 43210
+                                <h4 className="font-semibold mb-2">Need help?</h4>
+                                <p className="text-sm text-slate-500 mb-2">Call our admissions team</p>
+                                <a href={PHONE_HREF} className="text-secondary font-bold hover:underline">
+                                    {COMPANY_INFO.phone}
                                 </a>
                             </div>
                         </div>

@@ -16,8 +16,6 @@ const config: Config = {
         },
         extend: {
             colors: {
-                background: "var(--background)",
-                foreground: "var(--foreground)",
                 primary: {
                     DEFAULT: "#0F172A", // Deep Navy
                     foreground: "#FFFFFF",
@@ -32,8 +30,9 @@ const config: Config = {
                 }
             },
             fontFamily: {
-                sans: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
-                mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
+                // layout.tsx loads Inter into --font-inter
+                sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+                mono: ["ui-monospace", "SFMono-Regular", "monospace"],
             },
         },
     },

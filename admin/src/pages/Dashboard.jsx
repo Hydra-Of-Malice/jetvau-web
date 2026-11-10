@@ -3,6 +3,8 @@ import api from '../lib/api';
 import StatsCard from '../components/StatsCard';
 import { Users, BookOpen, MessageSquare, CreditCard, IndianRupee, TrendingUp } from 'lucide-react';
 
+const ENQUIRY_LABELS = { NEW: 'New', CONTACTED: 'Contacted', CLOSED: 'Closed' };
+
 export default function Dashboard() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -36,22 +38,22 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <StatsCard title="Total Users" value={stats.totalUsers} icon={Users} color="blue" />
-                <StatsCard title="Active Courses" value={stats.totalCourses} icon={BookOpen} color="orange" />
+                <StatsCard title="Total users" value={stats.totalUsers} icon={Users} color="blue" />
+                <StatsCard title="Active courses" value={stats.totalCourses} icon={BookOpen} color="orange" />
                 <StatsCard title="Enquiries" value={stats.totalEnquiries} icon={MessageSquare} color="purple" />
-                <StatsCard title="Paid Enrollments" value={stats.paidEnrollments} icon={CreditCard} color="green" />
-                <StatsCard title="Total Revenue" value={`₹${revenue}`} icon={IndianRupee} color="green" />
-                <StatsCard title="Total Enrollments" value={stats.totalEnrollments} icon={TrendingUp} color="blue" />
+                <StatsCard title="Paid enrollments" value={stats.paidEnrollments} icon={CreditCard} color="green" />
+                <StatsCard title="Total revenue" value={`₹${revenue}`} icon={IndianRupee} color="green" />
+                <StatsCard title="Total enrollments" value={stats.totalEnrollments} icon={TrendingUp} color="blue" />
             </div>
 
             {/* Recent Enquiries */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
                 <div className="p-6 border-b border-slate-100">
-                    <h2 className="text-lg font-bold text-slate-900">Recent Enquiries</h2>
+                    <h2 className="text-lg font-bold text-slate-900">Recent enquiries</h2>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                        <thead className="bg-slate-50 text-xs font-medium text-slate-500">
                             <tr>
                                 <th className="px-6 py-3 text-left">Name</th>
                                 <th className="px-6 py-3 text-left">Email</th>
@@ -70,7 +72,7 @@ export default function Dashboard() {
                                                 enquiry.status === 'CONTACTED' ? 'bg-yellow-100 text-yellow-700' :
                                                     'bg-green-100 text-green-700'
                                             }`}>
-                                            {enquiry.status}
+                                            {ENQUIRY_LABELS[enquiry.status] || enquiry.status}
                                         </span>
                                     </td>
                                 </tr>

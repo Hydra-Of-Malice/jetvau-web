@@ -3,6 +3,7 @@ import api from '../lib/api';
 import { MessageSquare } from 'lucide-react';
 
 const STATUS_OPTIONS = ['NEW', 'CONTACTED', 'CLOSED'];
+const STATUS_LABELS = { NEW: 'New', CONTACTED: 'Contacted', CLOSED: 'Closed' };
 const STATUS_COLORS = {
     NEW: 'bg-blue-100 text-blue-700',
     CONTACTED: 'bg-yellow-100 text-yellow-700',
@@ -16,7 +17,7 @@ export default function Enquiries() {
 
     const fetchEnquiries = () => {
         setLoading(true);
-        const url = filter ? `/enquiries?status=${filter}` : '/enquiries';
+        const url = filter ? `/enquiries?status=${encodeURIComponent(filter)}` : '/enquiries';
         api.get(url)
             .then((res) => setEnquiries(res.data.enquiries))
             .catch((err) => console.error('Fetch enquiries error:', err))
@@ -50,7 +51,7 @@ export default function Enquiries() {
                         <button
                             key={s} onClick={() => setFilter(s)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filter === s ? 'bg-primary text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
-                        >{s}</button>
+                        >{STATUS_LABELS[s]}</button>
                     ))}
                 </div>
             </div>
@@ -61,13 +62,13 @@ export default function Enquiries() {
                 </div>
             ) : enquiries.length === 0 ? (
                 <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-                    <MessageSquare size={48} className="mx-auto text-slate-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-700">No enquiries {filter ? `with status "${filter}"` : 'yet'}</h3>
+                    <MessageSquare size={48} className="mx-auto text-slate-300 mb-4" aria-hidden="true" />
+                    <h3 className="text-lg font-semibold text-slate-700">No enquiries {filter ? `with status "${STATUS_LABELS[filter]}"` : 'yet'}</h3>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                        <thead className="bg-slate-50 text-xs font-medium text-slate-500">
                             <tr>
                                 <th className="px-6 py-3 text-left">Name</th>
                                 <th className="px-6 py-3 text-left">Contact</th>
@@ -86,15 +87,16 @@ export default function Enquiries() {
                                         <p className="text-xs text-slate-400">{enquiry.phone}</p>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-slate-600">{enquiry.course}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">{enquiry.message || '—'}</td>
+                                    <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate" title={enquiry.message || ''}>{enquiry.message || '—'}</td>
                                     <td className="px-6 py-4">
                                         <select
                                             value={enquiry.status}
                                             onChange={(e) => updateStatus(enquiry._id, e.target.value)}
+                                            aria-label={`Status for ${enquiry.name}`}
                                             className={`px-2.5 py-1 rounded-full text-xs font-semibold border-0 cursor-pointer ${STATUS_COLORS[enquiry.status]}`}
                                         >
                                             {STATUS_OPTIONS.map((s) => (
-                                                <option key={s} value={s}>{s}</option>
+                                                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                                             ))}
                                         </select>
                                     </td>
